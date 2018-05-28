@@ -14,7 +14,6 @@ import sklearn
 from keras.layers import Dense, Conv2D, MaxPooling2D
 from keras.layers import Input, Flatten
 from keras.models import Model
-import h5py
 
 #opencv
 #Ajustar o tamanho das imagens
@@ -90,6 +89,11 @@ def cnn(x_train, y_train, x_test, y_test, size, cores, epochs, nomeArquivo):
     x_train = x_train.reshape((-1, size, size, cores))
     x_test = x_test.reshape((-1, size, size, cores))
 
+    print(x_train.shape)
+    print(x_test.shape)
+    print(y_train.shape)
+    print(y_test.shape)
+
     # our input placeholder
     input_layer = Input((size, size, cores))
 
@@ -105,7 +109,7 @@ def cnn(x_train, y_train, x_test, y_test, size, cores, epochs, nomeArquivo):
     x = Dense(32, activation='relu')(x)
 
     # output layer
-    out = Dense(2, activation='softmax')(x)
+    out = Dense(7, activation='softmax')(x)
 
     # wrap up the model
     model = Model(input_layer, out)
@@ -117,52 +121,72 @@ def cnn(x_train, y_train, x_test, y_test, size, cores, epochs, nomeArquivo):
     y_test = keras.utils.to_categorical(y_test)
 
     # train our model, do not forget to keep an eye for overfitting
-    model.fit(x_train, y_train,
-    batch_size=128, epochs= epochs, validation_data=(x_test, y_test))
-
+    model.fit(x_train, y_train, batch_size=128, epochs=epochs, validation_data=(x_test, y_test))
     model.save(nomeArquivo)
+    return model
 
 
 def carregarCNN(arquivo):
     return keras.models.load_model(arquivo)
 
+def classificar(arquivoRede, arquivoImg, size, cores = 3):
+    model = carregarCNN(arquivoRede)
+
+    img = PIL.Image.open(arquivoImg)
+    img = img.resize((size,size), PIL.Image.ANTIALIAS)
+    inp = np.array(img).reshape((-1, size, size, cores))
+    result = model.predict(inp)
+    print(result)
 
 def main():
+    criarRede = True
+    #criarRede = False
     #tamanho das imagens para treino
-    size = 28
-    corte = 0.10
-    cores = 3
-    #imagens originais
-    datasetCaminho = "D:\Projeto\Dataset\Arquivos"
-    #imagens resultantes
-    datasetDestino = "D:\\Projeto\\Dataset\\Normal"
-    #classes das imagens
-    datasetClasses = "D:\Projeto\Dataset\classificacao.txt"
-    #imagens teste
-    testeCaminho = "D:\Projeto\Dataset\Teste"
-    #imagens resultantes teste
-    testeDestino = "D:\\Projeto\\Dataset\\NormalTeste"
-    #classes das imagens teste
-    testeClasses = "D:\Projeto\Dataset\classificacaoTeste.txt"
-    #Salvar o modelo no caminhp
+    size = 60
+    #Salvar o modelo no caminho
     modeloDestino = "sadCNNModel"
-    #epochs
-    epochs = 100
-
-    #base treino
-    adequarImg(size, datasetCaminho, datasetDestino, True, corte)
-    #dataset, dataset_c = carregarImg(datasetDestino, size, cores, datasetClasses)
     
-    #base teste
-    #adequarImg(size, testeCaminho, testeDestino, False, corte)
-    #teste, teste_c = carregarImg(testeDestino, size, cores, testeClasses)
+    if criarRede == True:
+        
+        corte = 0.1
+        cores = 3
+        #imagens originais
+        datasetCaminho = "D:\Projeto\Dataset\Arquivos"
+        #imagens resultantes
+        datasetDestino = "D:\\Projeto\\Dataset\\Normal"
+        #classes das imagens
+        datasetClasses = "D:\Projeto\Dataset\classificacao.txt"
+        #imagens teste
+        testeCaminho = "D:\Projeto\Dataset\Teste"
+        #imagens resultantes teste
+        testeDestino = "D:\\Projeto\\Dataset\\NormalTeste"
+        #classes das imagens teste
+        testeClasses = "D:\Projeto\Dataset\classificacaoTeste.txt"
+        #epochs
+        epochs = 50
 
-    #cnn(dataset, dataset_c, teste, teste_c, size, cores, epochs, modeloDestino)
-    #img = cv2.imread(destino +"\\pare_0001.bmp")
+        #base treino
+        adequarImg(size, datasetCaminho, datasetDestino, True, corte)
+        dataset, dataset_c = carregarImg(datasetDestino, size, cores, datasetClasses)
+        
+        #base teste
+        adequarImg(size, testeCaminho, testeDestino, False, corte)
+        teste, teste_c = carregarImg(testeDestino, size, cores, testeClasses)
+        
+        model = cnn(dataset, dataset_c, teste, teste_c, size, cores, epochs, modeloDestino)
 
-    #cv2.imshow('PARE', dataset[0])
-    #cv2.waitKey(0)
-    #cv2.destroyAllWindows()
+        t = PIL.Image.open("D:\img.bmp")
+        t = t.resize((size,size), PIL.Image.ANTIALIAS)
+        inp = np.array(t).reshape((-1, size, size, cores))
+        result = model.predict(inp)
+        print(result)
+    else:
+        #img = cv2.imread("D:\imgP01.bmp")
+        #classificar(modeloDestino, "D:\imgV80.bmp", size)
+        classificar(modeloDestino, "D:\imgV40.bmp", size)
+        #cv2.imshow('PARE', img)
+        #cv2.waitKey(0)
+        #cv2.destroyAllWindows()
 
 if __name__ == "__main__":
     main()
