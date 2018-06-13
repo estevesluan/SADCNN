@@ -3,6 +3,7 @@ import matplotlib.image as mpimg
 import numpy as np
 import time
 import cv2
+import math
     
 # image is expected be in RGB color space
 def select_rgb_white_yellow(image): 
@@ -69,9 +70,9 @@ def select_region(image):
     """
     # first, define the polygon by vertices
     rows, cols = image.shape[:2]
-    bottom_left  = [cols*0.2, rows*0.65]
+    bottom_left  = [cols*0.2, rows*0.55]
     top_left     = [cols*0.2, rows*0.5]
-    bottom_right = [cols*0.6, rows*0.65]
+    bottom_right = [cols*0.6, rows*0.55]
     top_right    = [cols*0.6, rows*0.5]
     # the vertices are an array of polygons (i.e array of arrays) and the data type must be integer
     vertices = np.array([[bottom_left, top_left, top_right, bottom_right]], dtype=np.int32)
@@ -83,7 +84,26 @@ def hough_lines(image):
     
     Returns hough lines (not the image with lines)
     """
-    return cv2.HoughLinesP(image, rho=1, theta=np.pi/180, threshold=20, minLineLength=20, maxLineGap=300)
+    lines =  cv2.HoughLinesP(image, rho=1, theta=np.pi/180, threshold=20, minLineLength=15, maxLineGap=300)
+    teste = []
+
+    if lines is not None:
+        for line in lines:
+            for x1, y1, x2, y2 in line:
+                if x2 == x1:
+                    continue # ignore a vertical line
+                slope = float(y2-y1)/float(x2-x1)
+                angulo = math.degrees(math.atan(slope))
+                if angulo < 0:
+                    angulo = angulo * -1
+                print(angulo)
+                
+                if(angulo < 20 or angulo > 200):
+                    continue
+
+                teste.append(line)
+
+    return teste
 
 def average_slope_intercept(lines):
     left_lines    = [] # (slope, intercept)
@@ -93,9 +113,17 @@ def average_slope_intercept(lines):
     
     for line in lines:
         for x1, y1, x2, y2 in line:
-            if x2==x1:
+            if x2 == x1:
                 continue # ignore a vertical line
             slope = float(y2-y1)/float(x2-x1)
+            angulo = math.degrees(math.atan(slope))
+            if angulo < 0:
+                angulo = angulo * -1
+            print(angulo)
+
+            if(angulo < 70 or angulo > 150):
+                continue
+
             intercept = y1 - slope*x1
             length = np.sqrt((y2-y1)**2+(x2-x1)**2)
             if slope < 0: # y is reversed in image
@@ -150,43 +178,52 @@ def draw_lane_lines(image, lines, color=[0, 255, 0], thickness=12):
     return cv2.addWeighted(image, 1.0, line_image, 0.95, 0.0)
 
 def main():
-    #caminho = 'C:\\Users\\luanesteves\\Documents\\Projeto\\Linhas\\'
-    image  = cv2.imread('C:\\Users\\luanesteves\\Documents\\Projeto\\2811.bmp', 0)
-    #cap = cv2.VideoCapture('H:\python linhas\output.avi')
-    #ret, frame = cap.read()
-    #cont = 0
-    #gray         = convert_gray_scale(image)
-    smooth_gray  = apply_smoothing(image)
-    edges        = detect_edges(smooth_gray)
-    regions      = select_region(edges)
-    # lines        = hough_lines(regions)
+    caminho = 'C:\\Users\\luanesteves\\Documents\\Projeto\\Placas\\'
+    # ##imagem
+    # image  = cv2.imread('C:\\Users\\luanesteves\\Documents\\Projeto\\2811.bmp', 0)
+    # smooth_gray  = apply_smoothing(image)
+    # edges        = detect_edges(smooth_gray)
+    # regions      = select_region(edges)
+    # # lines        = hough_lines(regions)
+    # cv2.imshow('image',smooth_gray)
+    # cv2.imshow('regions',regions)
+    # cv2.imshow('edges',edges)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
-    cv2.imshow('image',smooth_gray)
-    cv2.imshow('regions',regions)
-    cv2.imshow('edges',edges)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-    
-    # while(ret == True):
+    #video
+    cap = cv2.VideoCapture('H:\\python Linhas\\testevideo.avi')
+    ret, frame = cap.read()
+    cont = 0
+    while(ret == True):
 
-    #     gray         = convert_gray_scale(frame)
-    #     smooth_gray  = apply_smoothing(gray)
-    #     edges        = detect_edges(smooth_gray)
-    #     #regions      = select_region(edges)
-    #     # lines        = hough_lines(regions)
+        gray         = convert_gray_scale(frame)
+        # smooth_gray  = apply_smoothing(gray)
+        edges        = detect_edges(gray)
+        regions      = select_region(edges)
+        lines        = hough_lines(regions)
 
-    #     if ret == True:
-    #         # cv2.imwrite(caminho + str(cont)+'.bmp', frame)
-    #         cont = cont + 1
-    #         cv2.imshow('frame',frame)
-    #         cv2.imshow('Original',edges)
+        if lines is not None:
+            left_lane, right_lane = average_slope_intercept(lines)
 
-    #     if cv2.waitKey(60) & 0xFF == ord('q'):
-    #         break
+        if ret == True:
+            #cv2.imwrite(caminho + str(cont)+'.bmp', frame)
+            #cont = cont + 1
+            if lines is not None: 
+                for x in range(0, len(lines)):
+                    for x1, y1, x2, y2 in lines[x]:
+                            cv2.line(frame, (x1,y1), (x2,y2), (0,0,255),2)
+
+            cv2.imshow('frame',frame)
+            cv2.imshow('smooth_gray',gray)
+            cv2.imshow('regions',regions)
+
+        if cv2.waitKey(60) & 0xFF == ord('q'):
+            break
         
-    #     ret, frame = cap.read()
-    # # When everything done, release the capture
-    #cap.release()
-    #cv2.destroyAllWindows()
+        ret, frame = cap.read()
+    # When everything done, release the capture
+    cap.release()
+    cv2.destroyAllWindows()
 
 main()

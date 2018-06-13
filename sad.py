@@ -239,6 +239,50 @@ def cnnVGG(x_train, y_train, x_test, y_test, size, cores, epochs, nomeArquivo):
     print('Test loss:', scores[0])
     print('Test accuracy:', scores[1])
 
+def cnnBRTSD(x_train, y_train, x_test, y_test, size, cores, epochs, nomeArquivo):
+    y_train = keras.utils.to_categorical(y_train)
+    y_test = keras.utils.to_categorical(y_test)
+
+    model = Sequential()
+    model.add(Conv2D(32, (5, 5), padding='same', input_shape=x_train.shape[1:]))
+    model.add(Activation('relu'))
+    model.add(Conv2D(32, (3, 3)))
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.2))
+
+    model.add(Conv2D(64, (3, 3), padding='same'))
+    model.add(Activation('relu'))
+    model.add(Conv2D(64, (3, 3)))
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
+
+    model.add(Flatten())
+    model.add(Dense(128))
+    model.add(Activation('relu'))
+    model.add(Dropout(0.5))
+    model.add(Dense(7))
+    model.add(Activation('softmax'))
+
+    # initiate RMSprop optimizer
+    opt = keras.optimizers.rmsprop(lr=0.0001, decay=1e-6)
+
+    # Let's train the model using RMSprop
+    model.compile(loss='categorical_crossentropy',
+                optimizer=opt,
+                metrics=['accuracy'])
+
+    model.fit(x_train, y_train,
+              batch_size=32,
+              epochs=epochs,
+              validation_data=(x_test, y_test),
+              shuffle=True)
+              
+    # Score trained model.
+    scores = model.evaluate(x_test, y_test, verbose=1)
+    print('Test loss:', scores[0])
+    print('Test accuracy:', scores[1])
 
 def cnnC10(x_train, y_train, x_test, y_test, size, cores, epochs, nomeArquivo):
     y_train = keras.utils.to_categorical(y_train)
@@ -385,7 +429,7 @@ def classificar(arquivoRede, arquivoImg, size, cores = 3):
     print(result)
 
 def main():
-    criarRede = True
+    criarRede = False
     #criarRede = False
     #tamanho das imagens para treino
     size = 45
