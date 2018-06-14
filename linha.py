@@ -84,7 +84,7 @@ def hough_lines(image):
     
     Returns hough lines (not the image with lines)
     """
-    lines =  cv2.HoughLinesP(image, rho=1, theta=np.pi/180, threshold=20, minLineLength=15, maxLineGap=300)
+    lines =  cv2.HoughLinesP(image, rho=1, theta=np.pi/180, threshold=20, minLineLength=0, maxLineGap=300)
     teste = []
 
     if lines is not None:
@@ -198,7 +198,7 @@ def main():
     while(ret == True):
 
         gray         = convert_gray_scale(frame)
-        # smooth_gray  = apply_smoothing(gray)
+        smooth_gray  = apply_smoothing(gray)
         edges        = detect_edges(gray)
         regions      = select_region(edges)
         lines        = hough_lines(regions)
