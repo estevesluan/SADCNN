@@ -98,7 +98,7 @@ def hough_lines(image):
                     angulo = angulo * -1
                 print(angulo)
                 
-                if(angulo < 20 or angulo > 200):
+                if(angulo < 15 or angulo > 180):
                     continue
 
                 teste.append(line)
@@ -198,7 +198,7 @@ def main():
     while(ret == True):
 
         gray         = convert_gray_scale(frame)
-        smooth_gray  = apply_smoothing(gray)
+        #smooth_gray  = apply_smoothing(gray)
         edges        = detect_edges(gray)
         regions      = select_region(edges)
         lines        = hough_lines(regions)
@@ -208,15 +208,16 @@ def main():
 
         if ret == True:
             #cv2.imwrite(caminho + str(cont)+'.bmp', frame)
-            #cont = cont + 1
+            cont = cont + 1
             if lines is not None: 
                 for x in range(0, len(lines)):
                     for x1, y1, x2, y2 in lines[x]:
                             cv2.line(frame, (x1,y1), (x2,y2), (0,0,255),2)
 
             cv2.imshow('frame',frame)
-            cv2.imshow('smooth_gray',gray)
+            #cv2.imshow('smooth_gray',gray)
             cv2.imshow('regions',regions)
+            print(cont)
 
         if cv2.waitKey(60) & 0xFF == ord('q'):
             break

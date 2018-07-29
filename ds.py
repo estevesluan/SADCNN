@@ -48,25 +48,25 @@ def adequarImg(size, caminho, destino, expandir, corte):
                 item = item.resize((size,size), PIL.Image.ANTIALIAS)
 
                 image = item
-                image.save(destino+"\\"+im+"_"+str(count)+"0001.bmp")
+                image.save(destino+"\\"+im+"_"+str(count)+"0001.jpg")
 
                 # image = ImageEnhance.Brightness(item).enhance(1.7)
                 # image.save(destino+"\\"+im+"_"+str(count)+"0002.bmp")
 
                 image = ImageEnhance.Brightness(item).enhance(1.5)
-                image.save(destino+"\\"+im+"_"+str(count)+"0003.bmp")
+                image.save(destino+"\\"+im+"_"+str(count)+"0003.jpg")
 
                 # image = ImageEnhance.Brightness(item).enhance(1.3)
                 # image.save(destino+"\\"+im+"_"+str(count)+"0004.bmp")
 
                 image = ImageEnhance.Brightness(item).enhance(0.7)
-                image.save(destino+"\\"+im+"_"+str(count)+"0005.bmp")
+                image.save(destino+"\\"+im+"_"+str(count)+"0005.jpg")
 
                 # image = ImageEnhance.Brightness(item).enhance(0.5)
                 # image.save(destino+"\\"+im+"_"+str(count)+"0006.bmp")
 
                 image = ImageEnhance.Brightness(item).enhance(0.2)
-                image.save(destino+"\\"+im+"_"+str(count)+"0007.bmp")
+                image.save(destino+"\\"+im+"_"+str(count)+"0007.jpg")
 
                 # image = item.filter(ImageFilter.BLUR)
                 # image.save(destino+"\\"+im+"_"+str(count)+"0008.bmp")
@@ -187,22 +187,14 @@ def cnnC10(x_train, y_train, x_test, y_test, size, cores, epochs, nomeArquivo):
     model = Sequential()
     model.add(Conv2D(32, (5, 5), padding='same', input_shape=x_train.shape[1:]))
     model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Conv2D(128, (3, 3)))
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.25))
-
-    model.add(Conv2D(64, (3, 3), padding='same'))
-    model.add(Activation('relu'))
-    model.add(Conv2D(256, (3, 3)))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.4))
 
     model.add(Flatten())
     model.add(Dense(1024))
     model.add(Activation('relu'))
-    model.add(Dropout(0.3))
     model.add(Dense(128))
     model.add(Activation('relu'))
     model.add(Dropout(0.25))
@@ -370,7 +362,7 @@ def classificar(arquivoRede, arquivoImg, size, cores = 3):
     print(result)
 
 def main():
-    criarRede = False
+    criarRede = True
     #criarRede = False
     #tamanho das imagens para treino
     size = 32
@@ -396,7 +388,7 @@ def main():
         #classes das imagens teste
         testeClasses = "D:\Projeto\Dataset\classificacaoTeste.txt"
         #epochs
-        epochs = 50
+        epochs = 1
 
         #base treino
         adequarImg(size, dsAtualizado, datasetDestino, True, corte)
